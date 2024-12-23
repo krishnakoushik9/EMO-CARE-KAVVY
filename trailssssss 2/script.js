@@ -4,7 +4,7 @@ const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
 const emotionIndicator = document.getElementById('emotion-indicator');
-let canvas;
+//let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
 let lastExpression = '';
@@ -434,8 +434,8 @@ Kavvy:`;
             body: JSON.stringify({
                 inputs: fullPrompt,
                 parameters: {
-                    max_new_tokens: 250, // Limit response length
-                    temperature: 0.8,    // Encourage natural variation
+                    max_new_tokens: 1250, // Limit response length
+                    temperature: 0.9,    // Encourage natural variation
                     top_p: 0.9,          // Diverse and engaging output
                     repetition_penalty: 1.2, // Reduce redundancy
                     do_sample: true,
