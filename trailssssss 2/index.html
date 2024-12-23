@@ -3,201 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRCS</title>
-    <!-- Scripts -->
+    <title>Kavvy - AI Assistant</title>
     <script defer src="face-api.min.js"></script>
     <script defer src="script.js"></script>
+    
     <style>
         :root {
-            --primary-color: #6d5bcd;
-            --primary-hover: #5646c9;
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-light: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-light: rgba(255, 255, 255, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             --success-color: #4ade80;
             --warning-color: #fbbf24;
             --error-color: #ef4444;
-            --dark-bg: #0f172a;
-            --darker-bg: #020617;
-            --chat-user: #1e293b;
-            --chat-ai: #1e1b4b;
-            --border-color: #334155;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
         }
+
+
+        #loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-text {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 80px;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--primary-color);
+    letter-spacing: 5px;
+    position: relative;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+}
+
+.logo-text::before {
+    content: 'LEGION-AI';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    color: var(--primary-color);
+    -webkit-text-stroke: 0px transparent;
+    border-right: 4px solid var(--primary-color);
+    overflow: hidden;
+    animation: animate 6s linear infinite;
+}
+
+.loading-progress {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--primary-color);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 18px;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+@keyframes animate {
+    0%, 10%, 100% {
+        width: 0;
+    }
+    70%, 90% {
+        width: 100%;
+    }
+}
 
         body {
             margin: 0;
             padding: 20px;
             width: 100vw;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: var(--dark-bg);
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0f9ff 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             overflow-x: hidden;
             box-sizing: border-box;
             color: var(--text-primary);
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 800px;
+        .app-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1440px;
+            height: calc(100vh - 40px);
+            margin: 0 auto;
+            position: relative;
         }
 
-        .header h1 {
-            color: var(--text-primary);
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #6d5bcd, #4ade80);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            margin: 0;
-            font-size: 1.1rem;
-        }
-
-        .main-container {
+        .left-panel {
+            width: 40%;
             display: flex;
             flex-direction: column;
-            align-items: center;
             gap: 20px;
-            width: 100%;
-            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+
+        .features-menu {
+            height: 60%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu-item {
+            padding: 16px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateX(8px);
+        }
+
+        .menu-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .camera-section {
+            height: 40%;
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .camera-section.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            z-index: 100;
         }
 
         .video-container {
+            width: 100%;
+            height: 100%;
             position: relative;
-            width: 720px;
-            height: 560px;
-            background-color: var(--darker-bg);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
         }
 
         #video {
-            position: absolute;
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
+            border-radius: 24px;
         }
 
         .emotion-indicator {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            color: var(--text-primary);
-            padding: 12px 24px;
+            top: 16px;
+            left: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
             border-radius: 99px;
-            font-size: 16px;
-            z-index: 20;
+            font-size: 14px;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 8px;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .emotion-indicator .emoji {
-            font-size: 24px;
+        .camera-controls {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .expand-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--glass-bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .right-panel {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
         }
 
         .chat-container {
-            width: 100%;
-            max-width: 720px;
-            background: var(--darker-bg);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            margin-top: 20px;
-            border: 1px solid var(--border-color);
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-light);
         }
 
         .chat-messages {
-            height: 300px;
+            flex: 1;
             overflow-y: auto;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 15px;
-            background: var(--dark-bg);
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-color) var(--dark-bg);
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track {
-            background: var(--dark-bg);
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background-color: var(--primary-color);
-            border-radius: 20px;
-        }
-
-        .chat-controls {
+            padding: 24px;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 16px;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: white;
+        }
+
+        .chat-input-container {
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 0 0 24px 24px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
             align-items: center;
-            padding: 10px;
-            background: var(--dark-bg);
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
         }
 
         #chat-input {
             flex: 1;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: var(--darker-bg);
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
             color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        #chat-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(109, 91, 205, 0.2);
+        .control-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
         }
 
-        #chat-input.interim {
-            color: var(--text-secondary);
-            font-style: italic;
+        .control-button:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .mic-button {
-            width: 44px;
-            height: 44px;
-            padding: 10px;
-            background: var(--primary-color);
-            border: none;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
+            border: none;
+            background: var(--primary-color);
+            color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
         }
 
         .mic-button:hover {
@@ -210,79 +344,14 @@
             animation: pulse 1.5s infinite;
         }
 
-        .message-bubble {
-            max-width: 80%;
-            margin: 8px;
-            padding: 12px 16px;
-            border-radius: 15px;
-            word-wrap: break-word;
-            position: relative;
-            line-height: 1.4;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .user-message {
-            background: var(--chat-user);
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-
-        .ai-message {
-            background: var(--chat-ai);
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .control-button {
-            padding: 12px 24px;
-            border: none;
+        .live-transcription {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 8px;
-            background-color: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            min-width: 120px;
             font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .control-button:hover:not(:disabled) {
-            background-color: var(--primary-hover);
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(109, 91, 205, 0.3);
-        }
-
-        .control-button:disabled {
-            background-color: var(--border-color);
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        #emotion-history {
-            background: var(--darker-bg);
-        }
-
-        #emotion-history h4 {
-            color: var(--text-primary);
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        #emotion-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
             color: var(--text-secondary);
+            min-height: 24px;
         }
 
         .message {
@@ -290,31 +359,25 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 15px 30px;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
             color: white;
-            font-weight: bold;
+            font-weight: 500;
             z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             display: none;
+            animation: slideDown 0.3s ease;
         }
 
         #loading-message {
-            background-color: var(--primary-color);
+            background: var(--primary-color);
         }
 
         #error-message {
-            background-color: var(--error-color);
+            background: var(--error-color);
         }
 
         #status-message {
-            background-color: var(--success-color);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: var(--success-color);
         }
 
         @keyframes pulse {
@@ -323,88 +386,90 @@
             100% { transform: scale(1); }
         }
 
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
         @media (max-width: 768px) {
-            .video-container {
-                width: 100%;
-                height: 400px;
-            }
-
-            .chat-container {
-                width: 95%;
-            }
-
-            .chat-messages {
-                height: 250px;
-            }
-
-            .controls {
+            .app-container {
                 flex-direction: column;
+            }
+
+            .left-panel, .right-panel {
                 width: 100%;
             }
 
-            .control-button {
-                width: 100%;
+            .left-panel {
+                height: auto;
             }
 
-            .message {
-                width: 90%;
-                text-align: center;
+            .features-menu {
+                height: auto;
             }
 
-            .header h1 {
-                font-size: 2rem;
+            .camera-section {
+                height: 300px;
             }
 
-            .header p {
-                font-size: 1rem;
+            .camera-section.expanded {
+                width: 95vw;
+                height: 60vh;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Just another boring AI Project</h1>
-        <p>An AI which can love you based on Mixtral and it's name is Kavvy</p>
-    </div>
+    <div class="app-container">
+        <div id="loading-message" class="message">Loading AI models...</div>
+        <div id="error-message" class="message"></div>
+        <div id="status-message" class="message"></div>
+        <div id="loading-overlay">
+            <div class="logo-container">
+                <div class="logo-text">LEGION-AI</div>
+            </div>
+            <div class="loading-progress">Initializing System...</div>
+        </div>
 
-    <div class="main-container">
-        <div class="video-container">
-            <video id="video" autoplay muted playsinline></video>
-            <div class="emotion-indicator" id="emotion-indicator">
-                <span class="emoji"></span>
-                <span class="text">Waiting for detection...</span>
+        <div class="left-panel">
+            <div class="features-menu">
+                <ul class="menu-list">
+                    <li class="menu-item active">Chat with Kavvy the AI</li>
+                    <li class="menu-item">Voice chat with fine-tuned model Based on Mixtral-AI</li>
+                    <li class="menu-item">Camera integration with emotions</li>
+                    <li class="menu-item">OCR (Coming soon)</li>
+                    <li class="menu-item">JioSaavn integration (Coming soon)</li>
+                    <li class="menu-item">Student calendar planner (Coming soon)</li>
+                </ul>
+            </div>
+            <div class="camera-section">
+                <div class="video-container">
+                    <video id="video" autoplay muted playsinline></video>
+                    <div class="emotion-indicator" id="emotion-indicator">
+                        <span class="emoji"></span>
+                        <span class="text">Waiting for detection...</span>
+                    </div>
+                    <div class="camera-controls">
+                        <button id="start-btn" class="control-button">Start Camera</button>
+                        <button id="stop-btn" class="control-button" disabled>Stop Camera</button>
+                    </div>
+                    <button class="expand-btn">⤢</button>
+                </div>
             </div>
         </div>
-
-        <div class="chat-container">
-            <div id="chat-messages" class="chat-messages"></div>
-            <div class="chat-controls">
-                <button id="mic-btn" class="mic-button" title="Toggle voice input">
-                    <span class="mic-icon">🎤</span>
-                </button>
-                <input 
-                    type="text" 
-                    id="chat-input" 
-                    placeholder="Type your message or click the mic for live transcription..."
-                    aria-label="Chat input"
-                >
-                <button id="send-btn" class="control-button">Send</button>
+        <div class="right-panel">
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <button id="mic-btn" class="mic-button">🎤</button>
+                        <input type="text" id="chat-input" placeholder="Type your message or use voice input...">
+                        <button id="send-btn" class="control-button">Send</button>
+                    </div>
+                    <div class="live-transcription" id="live-transcription"></div>
+                </div>
             </div>
         </div>
-
-        <div id="emotion-history" class="chat-container">
-            <h4>History Still in development</h4>
-            <ul id="emotion-list"></ul>
-        </div>
-
-        <div class="controls">
-            <button id="start-btn" class="control-button">Start Camera</button>
-            <button id="stop-btn" class="control-button" disabled>Stop Camera</button>
-        </div>
     </div>
-
-    <div id="loading-message" class="message">Loading AI models...</div>
-    <div id="error-message" class="message"></div>
-    <div id="status-message" class="message"></div>
 </body>
 </html>
