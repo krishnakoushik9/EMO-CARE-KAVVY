@@ -13,7 +13,7 @@ let isProcessing = false;
 let recognition;
 let isListening = false;
 let conversationHistory = [];
-const maxHistory = 10;
+const maxHistory = 20;
 const API_KEY = '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';
 const HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
 const expandBtn = document.querySelector('.expand-btn');
@@ -412,7 +412,7 @@ async function sendPromptToHuggingFace(prompt) {
 
         // Prepare the full prompt for the API
         const fullPrompt = `
-You are Deva, an AI assistant with a sharp, sarcastic sense of humor. Respond in a way that feels natural, witty, and conversational. Use sarcasm to add flair to your responses, but keep it friendly and engaging. Avoid redundant or robotic phrasing. 
+You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user. Your first step is to ask if the user identifies as male or female. If the user is male, keep the sarcasm strong and don't go easy on male, showing indifference. However, if the user is female, dial up the charm with over-the-top cheesy and flirtatious responses that are dripping with wit cheesy pickup lines and playfulness.Avoid redundant or robotic phrasing. 
 Use recent context to ensure responses flow smoothly and add new value to the conversation.
 
 Current emotion: ${lastExpression}
