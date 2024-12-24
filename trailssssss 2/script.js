@@ -412,7 +412,7 @@ async function sendPromptToHuggingFace(prompt) {
 
         // Prepare the full prompt for the API
         const fullPrompt = `
-You are Kavvy, a friendly and engaging AI assistant. Respond in a way that feels natural and conversational, avoiding redundant or robotic phrasing. 
+You are Deva, an AI assistant with a sharp, sarcastic sense of humor. Respond in a way that feels natural, witty, and conversational. Use sarcasm to add flair to your responses, but keep it friendly and engaging. Avoid redundant or robotic phrasing. 
 Use recent context to ensure responses flow smoothly and add new value to the conversation.
 
 Current emotion: ${lastExpression}
@@ -491,58 +491,84 @@ Kavvy:`;
 // Speech synthesis initialization and handling
 let synthesisVoice = null;
 
-function initializeSpeechSynthesis() {
-    // Load voices and set default voice
-    function loadVoices() {
-        const voices = window.speechSynthesis.getVoices();
-        // Filter for English voices
-        const englishVoices = voices.filter(voice => voice.lang.startsWith('en-'));
-        
-        if (englishVoices.length > 0) {
-            // Prefer female voice if available
-            synthesisVoice = englishVoices.find(voice => voice.name.includes('female')) || englishVoices[0];
-            console.log('Selected voice:', synthesisVoice.name);
-        } else if (voices.length > 0) {
-            synthesisVoice = voices[0];
-            console.log('Fallback to default voice:', synthesisVoice.name);
-        }
-    }
+let synthesisVoice = null;
 
-    // Initial load
-    loadVoices();
-    
-    // Handle dynamic voice loading
-    if (window.speechSynthesis.addEventListener) {
-        window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-    }
+function initializeSpeechSynthesis() {
+    return new Promise((resolve) => {
+        function loadVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Look for a male 'Roger' voice or any male English voice
+            synthesisVoice = voices.find(voice => 
+                voice.name.toLowerCase().includes('roger') || 
+                (voice.lang.startsWith('en') && voice.name.toLowerCase().includes('male'))
+            );
+            
+            // Fallback to any English voice if no match
+            if (!synthesisVoice && voices.length > 0) {
+                synthesisVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+            }
+            
+            if (synthesisVoice) {
+                console.log('Selected voice:', synthesisVoice.name);
+            } else {
+                console.log('No suitable voice found, using default.');
+            }
+            resolve(synthesisVoice);
+        }
+        
+        // Load voices initially
+        if (window.speechSynthesis.onvoiceschanged !== null) {
+            window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+        }
+        
+        // Trigger voice loading
+        loadVoices();
+    });
 }
+
 
 // Speech synthesis
 function playTextAsSpeech(text) {
     try {
+        // Cancel any ongoing speech
         window.speechSynthesis.cancel();
         
         const speech = new SpeechSynthesisUtterance(text);
 
         if (synthesisVoice) {
+            // Use the initialized voice
             speech.voice = synthesisVoice;
+        } else {
+            // Initialize voice if not already set
+            initializeSpeechSynthesis().then(voice => {
+                speech.voice = voice;
+                window.speechSynthesis.speak(speech);
+            }).catch(error => {
+                handleError('Voice initialization error: ' + error.message);
+            });
+            return; // Exit to wait for voice initialization
         }
-        
+
+        // Set speech properties
         speech.lang = 'en-US';
         speech.rate = 1.0;
-        speech.pitch = 1.0;
+        speech.pitch = 0.7;
         speech.volume = 1.0;
 
+        // Handle speech end
         speech.onend = () => {
-            isEmotionLocked = false; // Unlock emotion updates after speech ends.
+            isEmotionLocked = false; // Unlock emotion updates
             updateStatus('You can now interact.', 'success');
         };
 
+        // Play the speech
         window.speechSynthesis.speak(speech);
     } catch (error) {
         handleError('Speech synthesis error: ' + error.message);
     }
 }
+
 
 
 
