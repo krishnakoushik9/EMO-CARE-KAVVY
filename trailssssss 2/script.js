@@ -4,7 +4,7 @@ const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
 const emotionIndicator = document.getElementById('emotion-indicator');
-//let canvas;
+let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
 let lastExpression = '';
@@ -400,7 +400,7 @@ function capitalizeFirstLetter(string) {
 }
 
 //API KEY RELATED
-let kavvyResponseCounter = 0; // Counter to track occurrences of Kavvy's response
+let SRCSResponseCounter = 0; // Counter to track occurrences of SRCS's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
@@ -412,7 +412,7 @@ async function sendPromptToHuggingFace(prompt) {
 
         // Prepare the full prompt for the API
         const fullPrompt = `
-You are Kavvy, a friendly and engaging AI assistant. Respond in a way that feels natural and conversational, avoiding redundant or robotic phrasing. 
+You are SRCS, a friendly and engaging AI assistant. Respond in a way that feels natural and conversational, avoiding redundant or robotic phrasing. 
 Use recent context to ensure responses flow smoothly and add new value to the conversation.
 
 Current emotion: ${lastExpression}
@@ -422,7 +422,7 @@ ${recentContext}
 
 User: ${prompt}
 
-Kavvy:`;
+SRCS:`;
 
         // Call the Hugging Face API
         const response = await fetch(HF_ENDPOINT, {
@@ -454,30 +454,30 @@ Kavvy:`;
 
         // Dynamically filter response: Extract only text after user's message
         const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
-        let kavvyResponse = "";
+        let SRCSResponse = "";
 
         if (userPromptIndex !== -1) {
-            // Get text starting from the API's response to "Kavvy:"
+            // Get text starting from the API's response to "SRCS:"
             const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
-            kavvyResponse = relevantPart.split("Kavvy:").slice(1).join("Kavvy:").trim(); // Extract only Kavvy's part
+            SRCSResponse = relevantPart.split("SRCS:").slice(1).join("SRCS:").trim(); // Extract only SRCS's part
         }
 
-        if (!kavvyResponse) {
-            throw new Error("Failed to extract a valid Kavvy response.");
+        if (!SRCSResponse) {
+            throw new Error("Failed to extract a valid SRCS response.");
         }
 
         // Display and speak the response
-        addMessageToChat(`Kavvy: ${kavvyResponse}`, false);
-        playTextAsSpeech(kavvyResponse);
+        addMessageToChat(`SRCS: ${SRCSResponse}`, false);
+        playTextAsSpeech(SRCSResponse);
         updateStatus("Response received", "success");
 
         // Update conversation history
-        conversationHistory.push({ role: "assistant", content: kavvyResponse });
+        conversationHistory.push({ role: "assistant", content: SRCSResponse });
     } catch (error) {
         console.error("Error:", error.message);
 
         // Handle fallback gracefully
-        const fallbackResponse = "Kavvy: Oh, that's a cool thought! Tell me more.";
+        const fallbackResponse = "SRCS: Oh, that's a cool thought! Tell me more.";
         addMessageToChat(fallbackResponse, false);
         playTextAsSpeech(fallbackResponse);
         updateStatus("Using fallback response", "info");
@@ -491,30 +491,30 @@ Kavvy:`;
 // Speech synthesis initialization and handling
 let synthesisVoice = null;
 
-function initializeSpeechSynthesis() {
-    // Load voices and set default voice
-    function loadVoices() {
-        const voices = window.speechSynthesis.getVoices();
-        // Filter for English voices
-        const englishVoices = voices.filter(voice => voice.lang.startsWith('en-'));
+function initializeVoice() {
+    return new Promise((resolve) => {
+        // Wait for voices to be loaded
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+            // Look for a male Roger voice
+            synthesisVoice = voices.find(voice => 
+                voice.name.toLowerCase().includes('roger') || 
+                (voice.name.toLowerCase().includes('male') && voice.lang.startsWith('en'))
+            );
+            
+            // If no Roger voice found, fallback to any male English voice
+            if (!synthesisVoice) {
+                synthesisVoice = voices.find(voice => 
+                    voice.lang.startsWith('en') && 
+                    voice.name.toLowerCase().includes('male')
+                );
+            }
+            resolve(synthesisVoice);
+        };
         
-        if (englishVoices.length > 0) {
-            // Prefer female voice if available
-            synthesisVoice = englishVoices.find(voice => voice.name.includes('female')) || englishVoices[0];
-            console.log('Selected voice:', synthesisVoice.name);
-        } else if (voices.length > 0) {
-            synthesisVoice = voices[0];
-            console.log('Fallback to default voice:', synthesisVoice.name);
-        }
-    }
-
-    // Initial load
-    loadVoices();
-    
-    // Handle dynamic voice loading
-    if (window.speechSynthesis.addEventListener) {
-        window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-    }
+        // Trigger voice loading
+        window.speechSynthesis.getVoices();
+    });
 }
 
 // Speech synthesis
@@ -523,26 +523,31 @@ function playTextAsSpeech(text) {
         window.speechSynthesis.cancel();
         
         const speech = new SpeechSynthesisUtterance(text);
-
         if (synthesisVoice) {
             speech.voice = synthesisVoice;
+        } else {
+            // If voice isn't initialized yet, initialize it first
+            initializeVoice().then(voice => {
+                speech.voice = voice;
+                window.speechSynthesis.speak(speech);
+            });
+            return;
         }
         
         speech.lang = 'en-US';
         speech.rate = 1.0;
         speech.pitch = 1.0;
         speech.volume = 1.0;
-
         speech.onend = () => {
-            isEmotionLocked = false; // Unlock emotion updates after speech ends.
+            isEmotionLocked = false;
             updateStatus('You can now interact.', 'success');
         };
-
         window.speechSynthesis.speak(speech);
     } catch (error) {
         handleError('Speech synthesis error: ' + error.message);
     }
 }
+
 
 
 
