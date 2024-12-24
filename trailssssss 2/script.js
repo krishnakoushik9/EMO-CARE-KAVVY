@@ -400,7 +400,7 @@ function capitalizeFirstLetter(string) {
 }
 
 //API KEY RELATED
-let SRCSResponseCounter = 0; // Counter to track occurrences of SRCS's response
+let KavvyResponseCounter = 0; // Counter to track occurrences of Kavvy's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
@@ -412,7 +412,7 @@ async function sendPromptToHuggingFace(prompt) {
 
         // Prepare the full prompt for the API
         const fullPrompt = `
-You are SRCS, a friendly and engaging AI assistant. Respond in a way that feels natural and conversational, avoiding redundant or robotic phrasing. 
+You are Kavvy, a friendly and engaging AI assistant. Respond in a way that feels natural and conversational, avoiding redundant or robotic phrasing. 
 Use recent context to ensure responses flow smoothly and add new value to the conversation.
 
 Current emotion: ${lastExpression}
@@ -422,7 +422,7 @@ ${recentContext}
 
 User: ${prompt}
 
-SRCS:`;
+Kavvy:`;
 
         // Call the Hugging Face API
         const response = await fetch(HF_ENDPOINT, {
@@ -454,30 +454,30 @@ SRCS:`;
 
         // Dynamically filter response: Extract only text after user's message
         const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
-        let SRCSResponse = "";
+        let KavvyResponse = "";
 
         if (userPromptIndex !== -1) {
-            // Get text starting from the API's response to "SRCS:"
+            // Get text starting from the API's response to "Kavvy:"
             const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
-            SRCSResponse = relevantPart.split("SRCS:").slice(1).join("SRCS:").trim(); // Extract only SRCS's part
+            KavvyResponse = relevantPart.split("Kavvy:").slice(1).join("Kavvy:").trim(); // Extract only Kavvy's part
         }
 
-        if (!SRCSResponse) {
-            throw new Error("Failed to extract a valid SRCS response.");
+        if (!KavvyResponse) {
+            throw new Error("Failed to extract a valid Kavvy response.");
         }
 
         // Display and speak the response
-        addMessageToChat(`SRCS: ${SRCSResponse}`, false);
-        playTextAsSpeech(SRCSResponse);
+        addMessageToChat(`Kavvy: ${KavvyResponse}`, false);
+        playTextAsSpeech(KavvyResponse);
         updateStatus("Response received", "success");
 
         // Update conversation history
-        conversationHistory.push({ role: "assistant", content: SRCSResponse });
+        conversationHistory.push({ role: "assistant", content: KavvyResponse });
     } catch (error) {
         console.error("Error:", error.message);
 
         // Handle fallback gracefully
-        const fallbackResponse = "SRCS: Oh, that's a cool thought! Tell me more.";
+        const fallbackResponse = "Kavvy: Oh, that's a cool thought! Tell me more.";
         addMessageToChat(fallbackResponse, false);
         playTextAsSpeech(fallbackResponse);
         updateStatus("Using fallback response", "info");
