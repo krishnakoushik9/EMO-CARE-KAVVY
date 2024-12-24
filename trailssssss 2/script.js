@@ -400,7 +400,7 @@ function capitalizeFirstLetter(string) {
 }
 
 //API KEY RELATED
-let kavvyResponseCounter = 0; // Counter to track occurrences of Kavvy's response
+let DevaResponseCounter = 0; // Counter to track occurrences of Deva's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
@@ -422,7 +422,7 @@ ${recentContext}
 
 User: ${prompt}
 
-Kavvy:`;
+Deva:`;
 
         // Call the Hugging Face API
         const response = await fetch(HF_ENDPOINT, {
@@ -454,30 +454,30 @@ Kavvy:`;
 
         // Dynamically filter response: Extract only text after user's message
         const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
-        let kavvyResponse = "";
+        let DevaResponse = "";
 
         if (userPromptIndex !== -1) {
-            // Get text starting from the API's response to "Kavvy:"
+            // Get text starting from the API's response to "Deva:"
             const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
-            kavvyResponse = relevantPart.split("Kavvy:").slice(1).join("Kavvy:").trim(); // Extract only Kavvy's part
+            DevaResponse = relevantPart.split("Deva:").slice(1).join("Deva:").trim(); // Extract only Deva's part
         }
 
-        if (!kavvyResponse) {
-            throw new Error("Failed to extract a valid Kavvy response.");
+        if (!DevaResponse) {
+            throw new Error("Failed to extract a valid Deva response.");
         }
 
         // Display and speak the response
-        addMessageToChat(`Kavvy: ${kavvyResponse}`, false);
-        playTextAsSpeech(kavvyResponse);
+        addMessageToChat(`Deva: ${DevaResponse}`, false);
+        playTextAsSpeech(DevaResponse);
         updateStatus("Response received", "success");
 
         // Update conversation history
-        conversationHistory.push({ role: "assistant", content: kavvyResponse });
+        conversationHistory.push({ role: "assistant", content: DevaResponse });
     } catch (error) {
         console.error("Error:", error.message);
 
         // Handle fallback gracefully
-        const fallbackResponse = "Kavvy: Oh, that's a cool thought! Tell me more.";
+        const fallbackResponse = "Deva: Oh, that's a cool thought! Tell me more.";
         addMessageToChat(fallbackResponse, false);
         playTextAsSpeech(fallbackResponse);
         updateStatus("Using fallback response", "info");
