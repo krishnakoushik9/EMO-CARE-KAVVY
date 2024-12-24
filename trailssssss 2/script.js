@@ -858,130 +858,50 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function createSparkles() {
+    const numSparkles = 12;
+    const angleStep = (2 * Math.PI) / numSparkles;
+    const radius = 20;
+    let mouseX = 0;
+    let mouseY = 0;
+    let sparkles = [];
 
-class MouseTrailer {
-    constructor() {
-        this.mouseX = 0;
-        this.mouseY = 0;
-        this.particles = [];
-        this.rings = [];
-        this.glow = null;
-        this.colors = [
-            '#6366f1', // Primary color
-            '#818cf8', // Lighter primary
-            '#4f46e5', // Darker primary
-            '#c7d2fe', // Very light primary
-        ];
-        this.lastParticleTime = 0;
-        this.particleInterval = 50; // ms between particle spawns
-
-        this.init();
-    }
-
-    init() {
-        // Create glow effect
-        this.glow = document.createElement('div');
-        this.glow.className = 'glow';
-        this.glow.style.width = '100px';
-        this.glow.style.height = '100px';
-        document.body.appendChild(this.glow);
-
-        // Event listeners
-        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-        requestAnimationFrame(this.animate.bind(this));
-    }
-
-    handleMouseMove(e) {
-        this.mouseX = e.clientX;
-        this.mouseY = e.clientY;
-
-        // Update glow position
-        this.glow.style.left = `${this.mouseX - 50}px`;
-        this.glow.style.top = `${this.mouseY - 50}px`;
-
-        const now = Date.now();
-        if (now - this.lastParticleTime > this.particleInterval) {
-            this.createParticles();
-            this.createRing();
-            this.lastParticleTime = now;
-        }
-    }
-
-    createParticles() {
-        const numParticles = 8;
-        const angleStep = (2 * Math.PI) / numParticles;
-        const radius = 20;
-
-        for (let i = 0; i < numParticles; i++) {
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        
+        // Create sparkle particles in a circle
+        for (let i = 0; i < numSparkles; i++) {
             const angle = i * angleStep;
-            const x = this.mouseX + Math.cos(angle) * radius;
-            const y = this.mouseY + Math.sin(angle) * radius;
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
             
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = `${x}px`;
-            particle.style.top = `${y}px`;
-            particle.style.width = `${Math.random() * 4 + 2}px`;
-            particle.style.height = particle.style.width;
-            particle.style.background = this.colors[Math.floor(Math.random() * this.colors.length)];
-            particle.style.animation = `particleFade ${Math.random() * 0.5 + 0.5}s linear forwards`;
-
-            document.body.appendChild(particle);
-            this.particles.push({
-                element: particle,
-                createdAt: Date.now()
-            });
+            // Position sparkle in a circle around the mouse
+            const x = mouseX + Math.cos(angle) * radius;
+            const y = mouseY + Math.sin(angle) * radius;
+            
+            sparkle.style.left = `${x}px`;
+            sparkle.style.top = `${y}px`;
+            
+            document.body.appendChild(sparkle);
+            sparkles.push(sparkle);
+            
+            // Remove sparkle after animation
+            setTimeout(() => {
+                sparkle.remove();
+                sparkles = sparkles.filter(s => s !== sparkle);
+            }, 1000);
         }
-    }
+    });
 
-    createRing() {
-        const ring = document.createElement('div');
-        ring.className = 'particle-ring';
-        ring.style.left = `${this.mouseX - 25}px`;
-        ring.style.top = `${this.mouseY - 25}px`;
-        ring.style.width = '50px';
-        ring.style.height = '50px';
-        ring.style.borderColor = this.colors[Math.floor(Math.random() * this.colors.length)];
-        ring.style.animation = 'ringExpand 1s linear forwards';
-
-        document.body.appendChild(ring);
-        this.rings.push({
-            element: ring,
-            createdAt: Date.now()
-        });
-    }
-
-    animate() {
-        const now = Date.now();
-
-        // Clean up old particles
-        this.particles = this.particles.filter(particle => {
-            if (now - particle.createdAt > 1000) {
-                particle.element.remove();
-                return false;
-            }
-            return true;
-        });
-
-        // Clean up old rings
-        this.rings = this.rings.filter(ring => {
-            if (now - ring.createdAt > 1000) {
-                ring.element.remove();
-                return false;
-            }
-            return true;
-        });
-
-        requestAnimationFrame(this.animate.bind(this));
-    }
+    // Throttle sparkle creation for better performance
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    }, { passive: true });
 }
 
-// Initialize when document is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new MouseTrailer();
-});
-
-    
+// Initialize sparkles when document is loaded
+document.addEventListener('DOMContentLoaded', createSparkles);
 
 // Video event listeners
 video.addEventListener('play', () => {
