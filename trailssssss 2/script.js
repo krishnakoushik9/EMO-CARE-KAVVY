@@ -4,7 +4,7 @@ const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
 const emotionIndicator = document.getElementById('emotion-indicator');
-let canvas;
+//let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
 let lastExpression = '';
