@@ -491,7 +491,6 @@ Deva:`;
 // Speech synthesis initialization and handling
 let synthesisVoice = null;
 
-let synthesisVoice = null;
 
 function initializeSpeechSynthesis() {
     return new Promise((resolve) => {
