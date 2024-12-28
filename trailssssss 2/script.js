@@ -865,39 +865,27 @@ function createSparkles() {
     let mouseY = 0;
     let sparkles = [];
 
+    // Create sparkle particles in a circle
+    for (let i = 0; i < numSparkles; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className ='sparkle';
+        document.body.appendChild(sparkle);
+        sparkles.push(sparkle);
+    }
+
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        
-        // Create sparkle particles in a circle
+
+        // Update sparkle positions
         for (let i = 0; i < numSparkles; i++) {
             const angle = i * angleStep;
-            const sparkle = document.createElement('div');
-            sparkle.className = 'sparkle';
-            
-            // Position sparkle in a circle around the mouse
             const x = mouseX + Math.cos(angle) * radius;
             const y = mouseY + Math.sin(angle) * radius;
-            
-            sparkle.style.left = `${x}px`;
-            sparkle.style.top = `${y}px`;
-            
-            document.body.appendChild(sparkle);
-            sparkles.push(sparkle);
-            
-            // Remove sparkle after animation
-            setTimeout(() => {
-                sparkle.remove();
-                sparkles = sparkles.filter(s => s !== sparkle);
-            }, 1000);
+            sparkles[i].style.left = `${x}px`;
+            sparkles[i].style.top = `${y}px`;
         }
     });
-
-    // Throttle sparkle creation for better performance
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-    }, { passive: true });
 }
 
 // Initialize sparkles when document is loaded
