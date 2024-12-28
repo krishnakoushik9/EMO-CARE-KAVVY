@@ -70,14 +70,11 @@
 }
 
 .sparkle {
-    position: fixed;
-    pointer-events: none;
-    width: 6px;
-    height: 6px;
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: #fff;
     border-radius: 50%;
-    background: var(--primary-color);
-    opacity: 0;
-    animation: sparkle-fade 1s linear forwards;
 }
 
 @keyframes sparkle-fade {
