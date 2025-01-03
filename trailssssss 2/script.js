@@ -435,8 +435,8 @@ Deva:`;
                 inputs: fullPrompt,
                 parameters: {
                     max_new_tokens: 1250, // Limit response length
-                    temperature: 0.9,    // Encourage natural variation
-                    top_p: 0.9,          // Diverse and engaging output
+                    temperature: 0.5,    // Encourage natural variation
+                    top_p: 0.4,          // Diverse and engaging output
                     repetition_penalty: 1.2, // Reduce redundancy
                     do_sample: true,
                 },
