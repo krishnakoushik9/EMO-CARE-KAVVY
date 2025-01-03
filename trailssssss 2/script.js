@@ -901,6 +901,12 @@ function createSparkles() {
         }
     });
 }
+document.getElementById('student-planner-item').addEventListener('click', () => {
+        const userConfirmed = confirm("You are being redirected to the Student Planner. Continue?");
+        if (userConfirmed) {
+            window.location.href = 'calendar-todo.html';
+        }
+    });
 
 // Initialize sparkles when document is loaded
 document.addEventListener('DOMContentLoaded', createSparkles);
