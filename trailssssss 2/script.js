@@ -14,7 +14,7 @@ let recognition;
 let isListening = false;
 let conversationHistory = [];
 const maxHistory = 20;
-const API_KEY = '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';
+const API_KEY = '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';
 const HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
 const expandBtn = document.querySelector('.expand-btn');
 const cameraSection = document.querySelector('.camera-section');
