@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Calendar with To-Do</title>
+    <style>
+        /* Dark Theme */
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-dark: #0f172a;
+            --bg-light: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-light: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --error-color: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+
+        .calendar-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+            background: var(--bg-dark);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-nav button:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .calendar-main {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .calendar {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .todo-sidebar {
+            width: 300px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .todo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .todo-header h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .todo-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #todo-input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        #todo-add {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #todo-add:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: var(--bg-light);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .todo-item:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .todo-item button {
+            background: none;
+            border: none;
+            color: var(--error-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .todo-item button:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <!-- Header -->
+        <div class="calendar-header">
+            <h1>Dynamic Calendar</h1>
+            <div class="calendar-nav">
+                <button id="prev-month">← Prev</button>
+                <button id="next-month">Next →</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="calendar-main">
+            <!-- Calendar -->
+            <div class="calendar">
+                <div class="calendar-grid" id="calendar-grid"></div>
+            </div>
+
+            <!-- To-Do Sidebar -->
+            <div class="todo-sidebar">
+                <div class="todo-header">
+                    <h3>To-Do List</h3>
+                </div>
+                <div class="todo-input-container">
+                    <input type="text" id="todo-input" placeholder="Add a new task...">
+                    <button id="todo-add">Add</button>
+                </div>
+                <ul class="todo-list" id="todo-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calendar Logic
+        const calendarGrid = document.getElementById('calendar-grid');
+        const prevMonthButton = document.getElementById('prev-month');
+        const nextMonthButton = document.getElementById('next-month');
+        const todoInput = document.getElementById('todo-input');
+        const todoAddButton = document.getElementById('todo-add');
+        const todoList = document.getElementById('todo-list');
+
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+
+        // Render Calendar
+        function renderCalendar(month, year) {
+            calendarGrid.innerHTML = '';
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('calendar-day', 'empty');
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day');
+                dayElement.textContent = day;
+
+                // Highlight today
+                if (
+                    day === currentDate.getDate() &&
+                    month === currentDate.getMonth() &&
+                    year === currentDate.getFullYear()
+                ) {
+                    dayElement.classList.add('today');
+                }
+
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // Navigate to previous month
+        prevMonthButton.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        // Navigate to next month
+        nextMonthButton.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        // To-Do List Logic
+        todoAddButton.addEventListener('click', () => {
+            const task = todoInput.value.trim();
+            if (task) {
+                addTodoItem(task);
+                todoInput.value = '';
+            }
+        });
+
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const task = todoInput.value.trim();
+                if (task) {
+                    addTodoItem(task);
+                    todoInput.value = '';
+                }
+            }
+        });
+
+        function addTodoItem(task) {
+            const todoItem = document.createElement('li');
+            todoItem.classList.add('todo-item');
+            todoItem.innerHTML = `
+                <span>${task}</span>
+                <button onclick="removeTodoItem(this)">✕</button>
+            `;
+            todoList.appendChild(todoItem);
+        }
+
+        function removeTodoItem(button) {
+            const todoItem = button.parentElement;
+            todoList.removeChild(todoItem);
+        }
+
+        // Initial Render
+        renderCalendar(currentMonth, currentYear);
+    </script>
+</body>
+</html>
