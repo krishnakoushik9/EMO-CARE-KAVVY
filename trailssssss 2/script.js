@@ -20,6 +20,7 @@ const expandBtn = document.querySelector('.expand-btn');
 const cameraSection = document.querySelector('.camera-section');
 const leftPanel = document.querySelector('.left-panel');
 
+
 expandBtn.addEventListener('click', () => {
     cameraSection.classList.toggle('expanded');
     leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
@@ -832,6 +833,19 @@ let loadingScreen;
 window.addEventListener('load', () => {
     loadingScreen = new LoadingScreen();
 });
+
+document.getElementById('ocr-menu-item').addEventListener('click', () => {
+    // Show confirmation dialog
+    const userConfirmed = confirm(
+        "This will open LlamaOCR in a new tab. Please note that LlamaOCR is not owned by legion.sourcecodes. Until we build our own OCR solution, you can use this official site."
+    );
+
+    // If user confirms, open the link in a new tab
+    if (userConfirmed) {
+        window.open('https://llamaocr.com/', '_blank');
+    }
+});
+
 // Initialize everything when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadModels();
