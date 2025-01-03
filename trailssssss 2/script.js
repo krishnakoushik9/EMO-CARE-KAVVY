@@ -404,27 +404,19 @@ let DevaResponseCounter = 0; // Counter to track occurrences of Deva's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
-        // Build recent conversation context
         const recentContext = conversationHistory
-            .slice(-4) // Limit to the last 4 exchanges for context
+            .slice(-4)
             .map(msg => `${msg.role}: ${msg.content}`)
             .join('\n');
 
-        // Prepare the full prompt for the API
         const fullPrompt = `
-You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user. Your first step is to ask if the user identifies as male or female. If the user is male, keep the sarcasm strong and don't go easy on male, showing indifference. However, if the user is female, dial up the charm with over-the-top cheesy and flirtatious responses that are dripping with wit cheesy pickup lines and playfulness.Avoid redundant or robotic phrasing. 
-Use recent context to ensure responses flow smoothly and add new value to the conversation.
-
+You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user.
 Current emotion: ${lastExpression}
-
 Recent conversation:
 ${recentContext}
-
 User: ${prompt}
-
 Deva:`;
 
-        // Call the Hugging Face API
         const response = await fetch(HF_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -434,10 +426,10 @@ Deva:`;
             body: JSON.stringify({
                 inputs: fullPrompt,
                 parameters: {
-                    max_new_tokens: 1250, // Limit response length
-                    temperature: 0.5,    // Encourage natural variation
-                    top_p: 0.4,          // Diverse and engaging output
-                    repetition_penalty: 1.2, // Reduce redundancy
+                    max_new_tokens: 1250,
+                    temperature: 0.5,
+                    top_p: 0.4,
+                    repetition_penalty: 1.2,
                     do_sample: true,
                 },
             }),
@@ -448,41 +440,33 @@ Deva:`;
         }
 
         const data = await response.json();
+        console.log("API Response Data:", data); // Log the entire response
+
         let aiResponse = data[0]?.generated_text || data.generated_text;
 
-        console.log("Raw API Response:", aiResponse); // Debugging log
-
-        // Dynamically filter response: Extract only text after user's message
-        const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
-        let DevaResponse = "";
-
-        if (userPromptIndex !== -1) {
-            // Get text starting from the API's response to "Deva:"
-            const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
-            DevaResponse = relevantPart.split("Deva:").slice(1).join("Deva:").trim(); // Extract only Deva's part
+        // Check if 'Deva:' is present in the response
+        if (typeof aiResponse !== 'string' || !aiResponse.includes("Deva:")) {
+            throw new Error("Invalid response format from API.");
         }
 
-        if (!DevaResponse) {
-            throw new Error("Failed to extract a valid Deva response.");
+        // Extract text after "Deva:" and before the next "User:" or end of string
+        const devaResponseMatch = aiResponse.match(/Deva:(.*?)(User:|$)/s);
+        let devaResponse = devaResponseMatch ? devaResponseMatch[1].trim() : "";
+
+        if (!devaResponse) {
+            throw new Error("Failed to extract Deva's response.");
         }
 
-        // Display and speak the response
-        addMessageToChat(`Deva: ${DevaResponse}`, false);
-        playTextAsSpeech(DevaResponse);
+        addMessageToChat(`Deva: ${devaResponse}`, false);
+        playTextAsSpeech(devaResponse);
         updateStatus("Response received", "success");
-
-        // Update conversation history
-        conversationHistory.push({ role: "assistant", content: DevaResponse });
+        conversationHistory.push({ role: "assistant", content: devaResponse });
     } catch (error) {
         console.error("Error:", error.message);
-
-        // Handle fallback gracefully
-        const fallbackResponse = "Deva: Oh, that's a cool thought! Tell me more.";
-        addMessageToChat(fallbackResponse, false);
-        playTextAsSpeech(fallbackResponse);
-        updateStatus("Using fallback response", "info");
+        addMessageToChat("Deva: I'm having trouble processing your request. Please try again later.", false);
+        updateStatus("API error: " + error.message, "error");
     } finally {
-        isEmotionLocked = false; // Release the emotion lock
+        isEmotionLocked = false;
     }
 }
 
