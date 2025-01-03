@@ -4,7 +4,7 @@ const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
 const emotionIndicator = document.getElementById('emotion-indicator');
-//let canvas;
+let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
 let lastExpression = '';
@@ -14,7 +14,7 @@ let recognition;
 let isListening = false;
 let conversationHistory = [];
 const maxHistory = 20;
-const API_KEY = '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';
+const API_KEY = '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';
 const HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
 const expandBtn = document.querySelector('.expand-btn');
 const cameraSection = document.querySelector('.camera-section');
@@ -404,19 +404,27 @@ let DevaResponseCounter = 0; // Counter to track occurrences of Deva's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
+        // Build recent conversation context
         const recentContext = conversationHistory
-            .slice(-4)
+            .slice(-4) // Limit to the last 4 exchanges for context
             .map(msg => `${msg.role}: ${msg.content}`)
             .join('\n');
 
+        // Prepare the full prompt for the API
         const fullPrompt = `
-You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user.
+You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user. Your first step is to ask if the user identifies as male or female. If the user is male, keep the sarcasm strong and don't go easy on male, showing indifference. However, if the user is female, dial up the charm with over-the-top cheesy and flirtatious responses that are dripping with wit cheesy pickup lines and playfulness.Avoid redundant or robotic phrasing. 
+Use recent context to ensure responses flow smoothly and add new value to the conversation.
+
 Current emotion: ${lastExpression}
+
 Recent conversation:
 ${recentContext}
+
 User: ${prompt}
+
 Deva:`;
 
+        // Call the Hugging Face API
         const response = await fetch(HF_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -426,10 +434,10 @@ Deva:`;
             body: JSON.stringify({
                 inputs: fullPrompt,
                 parameters: {
-                    max_new_tokens: 1250,
-                    temperature: 0.5,
-                    top_p: 0.4,
-                    repetition_penalty: 1.2,
+                    max_new_tokens: 1250, // Limit response length
+                    temperature: 0.9,    // Encourage natural variation
+                    top_p: 0.9,          // Diverse and engaging output
+                    repetition_penalty: 1.2, // Reduce redundancy
                     do_sample: true,
                 },
             }),
@@ -440,33 +448,41 @@ Deva:`;
         }
 
         const data = await response.json();
-        console.log("API Response Data:", data); // Log the entire response
-
         let aiResponse = data[0]?.generated_text || data.generated_text;
 
-        // Check if 'Deva:' is present in the response
-        if (typeof aiResponse !== 'string' || !aiResponse.includes("Deva:")) {
-            throw new Error("Invalid response format from API.");
+        console.log("Raw API Response:", aiResponse); // Debugging log
+
+        // Dynamically filter response: Extract only text after user's message
+        const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
+        let DevaResponse = "";
+
+        if (userPromptIndex !== -1) {
+            // Get text starting from the API's response to "Deva:"
+            const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
+            DevaResponse = relevantPart.split("Deva:").slice(1).join("Deva:").trim(); // Extract only Deva's part
         }
 
-        // Extract text after "Deva:" and before the next "User:" or end of string
-        const devaResponseMatch = aiResponse.match(/Deva:(.*?)(User:|$)/s);
-        let devaResponse = devaResponseMatch ? devaResponseMatch[1].trim() : "";
-
-        if (!devaResponse) {
-            throw new Error("Failed to extract Deva's response.");
+        if (!DevaResponse) {
+            throw new Error("Failed to extract a valid Deva response.");
         }
 
-        addMessageToChat(`Deva: ${devaResponse}`, false);
-        playTextAsSpeech(devaResponse);
+        // Display and speak the response
+        addMessageToChat(`Deva: ${DevaResponse}`, false);
+        playTextAsSpeech(DevaResponse);
         updateStatus("Response received", "success");
-        conversationHistory.push({ role: "assistant", content: devaResponse });
+
+        // Update conversation history
+        conversationHistory.push({ role: "assistant", content: DevaResponse });
     } catch (error) {
         console.error("Error:", error.message);
-        addMessageToChat("Deva: I'm having trouble processing your request. Please try again later.", false);
-        updateStatus("API error: " + error.message, "error");
+
+        // Handle fallback gracefully
+        const fallbackResponse = "Deva: Oh, that's a cool thought! Tell me more.";
+        addMessageToChat(fallbackResponse, false);
+        playTextAsSpeech(fallbackResponse);
+        updateStatus("Using fallback response", "info");
     } finally {
-        isEmotionLocked = false;
+        isEmotionLocked = false; // Release the emotion lock
     }
 }
 
