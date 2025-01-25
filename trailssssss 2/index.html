@@ -6,6 +6,29 @@
     <title>SRCS - AI Assistant</title>
     <script defer src="face-api.min.js"></script>
     <script defer src="script.js"></script>
+    <script>
+  async function sendPerformanceMetrics() {
+    const data = {
+      fcp: performance.getEntriesByName("first-contentful-paint")[0]?.startTime || null,
+      lcp: performance.getEntriesByType("largest-contentful-paint")[0]?.startTime || null,
+      tti: performance.timing.domInteractive - performance.timing.navigationStart,
+      url: window.location.href,
+    };
+
+    // Send data to your backend
+    await fetch("/api/speed-insights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Ensure the metrics are captured after the page has fully loaded
+  window.addEventListener("load", () => {
+    setTimeout(sendPerformanceMetrics, 5000); // Wait for additional metrics to load
+  });
+</script>
+
     
     <style>
         :root {
