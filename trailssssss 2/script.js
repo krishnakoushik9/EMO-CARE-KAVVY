@@ -21,7 +21,11 @@ const cameraSection = document.querySelector('.camera-section');
 const leftPanel = document.querySelector('.left-panel');
 
 
-
+expandBtn.addEventListener('click', () => {
+    cameraSection.classList.toggle('expanded');
+    leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
+    expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
+});
 let isEmotionInteractionEnabled = true; // User-controlled toggle.
 
 function throttle(callback, limit) {
@@ -802,49 +806,27 @@ document.addEventListener('DOMContentLoaded', () => {
     loadModels();
     initializeSpeechRecognition();
     initializeSpeechSynthesis();
-
-    // Replace the existing expandBtn event listener with this
-expandBtn.addEventListener('click', () => {
-    const videoContainer = document.querySelector('.video-container');
-    const isExpanding = !cameraSection.classList.contains('expanded');
-
-    if (isExpanding) {
-        // Create overlay clone
-        const clone = videoContainer.cloneNode(true);
-        clone.classList.add('expanded-overlay');
-        document.body.appendChild(clone);
-
-        // Add close button to overlay
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'close-expanded';
-        closeBtn.innerHTML = '&times;';
-        closeBtn.onclick = () => expandBtn.click();
-        clone.appendChild(closeBtn);
-
-        // Apply blur to the background
-        document.querySelector('.app-container').classList.add('blur-background');
-    } else {
-        // Remove overlay
-        const overlay = document.querySelector('.expanded-overlay');
-        if (overlay) overlay.remove();
-
-        // Remove blur from the background
-        document.querySelector('.app-container').classList.remove('blur-background');
-    }
-
-    // Toggle the expanded state without affecting layout
-    cameraSection.classList.toggle('expanded');
-    expandBtn.textContent = isExpanding ? '⤡' : '⤢';
-    
-    // Keep original video container visible but transparent
-    videoContainer.style.visibility = isExpanding ? 'hidden' : 'visible';
-});
     
     // Rest of your initialization code...
     const expandBtn = document.querySelector('.expand-btn');
     const cameraSection = document.querySelector('.camera-section');
     const leftPanel = document.querySelector('.left-panel');
     
+    expandBtn.addEventListener('click', () => {
+        cameraSection.classList.toggle('expanded');
+        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
+        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
+    });
+
+    document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
+    document.getElementById('send-btn').addEventListener('click', () => sendMessage());
+    document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+});
 
 // Initialize loading screen
 let loadingScreen;
