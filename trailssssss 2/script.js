@@ -812,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraSection = document.querySelector('.camera-section');
     const leftPanel = document.querySelector('.left-panel');
     
-    // Update the expand button event listener
+    // Replace the existing expandBtn event listener with this
 expandBtn.addEventListener('click', () => {
     const videoContainer = document.querySelector('.video-container');
     const isExpanding = !cameraSection.classList.contains('expanded');
@@ -829,24 +829,19 @@ expandBtn.addEventListener('click', () => {
         closeBtn.innerHTML = '&times;';
         closeBtn.onclick = () => expandBtn.click();
         clone.appendChild(closeBtn);
-
-        // Hide original video but keep layout
-        videoContainer.style.opacity = '0';
-        videoContainer.style.pointerEvents = 'none';
     } else {
         // Remove overlay
         const overlay = document.querySelector('.expanded-overlay');
         if (overlay) overlay.remove();
-
-        // Restore original video
-        videoContainer.style.opacity = '1';
-        videoContainer.style.pointerEvents = 'auto';
     }
 
+    // Toggle the expanded state without affecting layout
     cameraSection.classList.toggle('expanded');
     expandBtn.textContent = isExpanding ? '⤡' : '⤢';
+    
+    // Keep original video container visible but transparent
+    videoContainer.style.visibility = isExpanding ? 'hidden' : 'visible';
 });
-
     document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
     document.getElementById('send-btn').addEventListener('click', () => sendMessage());
     document.getElementById('chat-input').addEventListener('keypress', (e) => {
