@@ -6,29 +6,6 @@
     <title>SRCS - AI Assistant</title>
     <script defer src="face-api.min.js"></script>
     <script defer src="script.js"></script>
-    <script>
-  async function sendPerformanceMetrics() {
-    const data = {
-      fcp: performance.getEntriesByName("first-contentful-paint")[0]?.startTime || null,
-      lcp: performance.getEntriesByType("largest-contentful-paint")[0]?.startTime || null,
-      tti: performance.timing.domInteractive - performance.timing.navigationStart,
-      url: window.location.href,
-    };
-
-    // Send data to your backend
-    await fetch("/api/speed-insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-  }
-
-  // Ensure the metrics are captured after the page has fully loaded
-  window.addEventListener("load", () => {
-    setTimeout(sendPerformanceMetrics, 5000); // Wait for additional metrics to load
-  });
-</script>
-
     
     <style>
         :root {
@@ -132,93 +109,6 @@
             padding: 20px;
         }
 
-        .expanded-overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80vw;
-            height: 80vh;
-            z-index: 1000;
-            background: var(--glass-bg);
-            backdrop-filter: blur(40px);
-            border-radius: 24px;
-            box-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
-        }
-        /* Add this to your existing CSS */
-.expanded-overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80vw;
-    height: 80vh;
-    z-index: 1000;
-    background: var(--glass-bg);
-    backdrop-filter: blur(40px);
-    border-radius: 24px;
-    box-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
-}
-
-.expanded-overlay video {
-    object-fit: contain;
-    background: black;
-}
-
-.close-expanded {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(5px);
-}
-
-.blur-background {
-    filter: blur(10px);
-    pointer-events: none;
-}
-        
-        .expanded-overlay video {
-            object-fit: contain;
-            background: black;
-        }
-        
-        .close-expanded {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            color: white;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        
-        /* Remove the original expanded class styles */
-        .camera-section.expanded {
-            /* Reset original element styles */
-            position: static;
-            transform: none;
-            width: auto;
-            height: auto;
-        }
         .left-panel {
             width: 40%;
             display: flex;
@@ -291,7 +181,16 @@
             box-shadow: 0 12px 40px rgba(31, 38, 135, 0.3);
         }
 
-        
+        .camera-section.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) !important;
+            width: 80vw;
+            height: 80vh;
+            z-index: 1000;
+            backdrop-filter: blur(40px);
+        }
 
         .video-container {
             width: 100%;
@@ -569,6 +468,11 @@
 
             .camera-section {
                 height: 300px;
+            }
+
+            .camera-section.expanded {
+                width: 95vw;
+                height: 60vh;
             }
 
             .logo-text {
