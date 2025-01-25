@@ -812,11 +812,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraSection = document.querySelector('.camera-section');
     const leftPanel = document.querySelector('.left-panel');
     
-    expandBtn.addEventListener('click', () => {
-        cameraSection.classList.toggle('expanded');
-        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
-        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
-    });
+    // Update the expand button event listener
+expandBtn.addEventListener('click', () => {
+    const videoContainer = document.querySelector('.video-container');
+    const isExpanding = !cameraSection.classList.contains('expanded');
+
+    if (isExpanding) {
+        // Create overlay clone
+        const clone = videoContainer.cloneNode(true);
+        clone.classList.add('expanded-overlay');
+        document.body.appendChild(clone);
+
+        // Add close button to overlay
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-expanded';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = () => expandBtn.click();
+        clone.appendChild(closeBtn);
+
+        // Hide original video but keep layout
+        videoContainer.style.opacity = '0';
+        videoContainer.style.pointerEvents = 'none';
+    } else {
+        // Remove overlay
+        const overlay = document.querySelector('.expanded-overlay');
+        if (overlay) overlay.remove();
+
+        // Restore original video
+        videoContainer.style.opacity = '1';
+        videoContainer.style.pointerEvents = 'auto';
+    }
+
+    cameraSection.classList.toggle('expanded');
+    expandBtn.textContent = isExpanding ? '⤡' : '⤢';
+});
 
     document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
     document.getElementById('send-btn').addEventListener('click', () => sendMessage());
