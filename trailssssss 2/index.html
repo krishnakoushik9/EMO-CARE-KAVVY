@@ -117,6 +117,8 @@
             gap: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
+            /* Add this */
+            min-width: 400px;
         }
 
         .features-menu {
@@ -186,11 +188,19 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) !important;
-            width: 80vw;
-            height: 80vh;
+            transform: translate(-50%, -50%);
+            width: 90vmin;
+            height: 90vmin;
             z-index: 1000;
             backdrop-filter: blur(40px);
+            max-width: 1000px;
+            max-height: 1000px;
+        }
+        
+        /* Add this to prevent hover effects when expanded */
+        .camera-section.expanded:hover {
+            transform: translate(-50%, -50%) !important;
+            box-shadow: var(--glass-shadow);
         }
 
         .video-container {
@@ -199,6 +209,8 @@
             position: relative;
             border-radius: 24px;
             overflow: hidden;
+            /* Add this */
+            background: black;
         }
 
         #video {
