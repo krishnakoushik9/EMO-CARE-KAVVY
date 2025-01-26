@@ -3,7 +3,36 @@ const video = document.getElementById('video');
 const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
-const emotionIndicator = document.getElementById('emotion-indicator');
+const emotionIndicator = document.getElementById('emotion-indicator');// Expand button functionality
+let isExpanded = false;
+expandBtn.addEventListener('click', () => {
+    isExpanded = !isExpanded;
+    
+    // Toggle expanded class on camera section
+    cameraSection.classList.toggle('expanded');
+    
+    // Handle layout changes
+    if (isExpanded) {
+        // Bring camera to front
+        cameraSection.style.zIndex = '10000';
+        // Hide left panel content but maintain layout
+        leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'hidden');
+        leftPanel.style.pointerEvents = 'none';
+    } else {
+        cameraSection.style.zIndex = '';
+        leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'visible');
+        leftPanel.style.pointerEvents = 'auto';
+    }
+    
+    expandBtn.textContent = isExpanded ? '⤡' : '⤢';
+    
+    // Force video redraw
+    if (video.srcObject) {
+        video.style.display = 'none';
+        void video.offsetHeight;
+        video.style.display = 'block';
+    }
+});
 let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
@@ -815,18 +844,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const chatInput = document.getElementById('chat-input');
 
+    
     // Expand button functionality
     let isExpanded = false;
     expandBtn.addEventListener('click', () => {
         isExpanded = !isExpanded;
+        
+        // Toggle expanded class on camera section
         cameraSection.classList.toggle('expanded');
-        leftPanel.style.display = isExpanded ? 'none' : 'flex';
+        
+        // Handle layout changes
+        if (isExpanded) {
+            // Bring camera to front
+            cameraSection.style.zIndex = '10000';
+            // Hide left panel content but maintain layout
+            leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'hidden');
+            leftPanel.style.pointerEvents = 'none';
+        } else {
+            cameraSection.style.zIndex = '';
+            leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'visible');
+            leftPanel.style.pointerEvents = 'auto';
+        }
+        
         expandBtn.textContent = isExpanded ? '⤡' : '⤢';
         
         // Force video redraw
         if (video.srcObject) {
             video.style.display = 'none';
-            void video.offsetHeight; // Trigger reflow
+            void video.offsetHeight;
             video.style.display = 'block';
         }
     });
