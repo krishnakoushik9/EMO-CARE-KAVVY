@@ -807,20 +807,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSpeechRecognition();
     initializeSpeechSynthesis();
     
-    // Rest of your initialization code...
+    // Get DOM elements
     const expandBtn = document.querySelector('.expand-btn');
     const cameraSection = document.querySelector('.camera-section');
     const leftPanel = document.querySelector('.left-panel');
-    
+    const micBtn = document.getElementById('mic-btn');
+    const sendBtn = document.getElementById('send-btn');
+    const chatInput = document.getElementById('chat-input');
+
+    // Expand button functionality
+    let isExpanded = false;
     expandBtn.addEventListener('click', () => {
+        isExpanded = !isExpanded;
         cameraSection.classList.toggle('expanded');
-        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
-        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
+        leftPanel.style.display = isExpanded ? 'none' : 'flex';
+        expandBtn.textContent = isExpanded ? '⤡' : '⤢';
+        
+        // Force video redraw
+        if (video.srcObject) {
+            video.style.display = 'none';
+            void video.offsetHeight; // Trigger reflow
+            video.style.display = 'block';
+        }
     });
 
-    document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
-    document.getElementById('send-btn').addEventListener('click', () => sendMessage());
-    document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    // Chat controls
+    micBtn.addEventListener('click', toggleMicrophone);
+    sendBtn.addEventListener('click', () => sendMessage());
+    chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
@@ -844,31 +858,6 @@ document.getElementById('ocr-menu-item').addEventListener('click', () => {
     if (userConfirmed) {
         window.open('https://llamaocr.com/', '_blank');
     }
-});
-
-// Initialize everything when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    loadModels();
-    initializeSpeechRecognition();
-    initializeSpeechSynthesis(); 
-    // Add camera expand/minimize functionality
-    const expandBtn = document.querySelector('.expand-btn');
-    const cameraSection = document.querySelector('.camera-section');
-    const leftPanel = document.querySelector('.left-panel');
-    expandBtn.addEventListener('click', () => {
-        cameraSection.classList.toggle('expanded');
-        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
-        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
-    });
-    // Add event listeners for chat controls
-    document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
-    document.getElementById('send-btn').addEventListener('click', () => sendMessage());
-    document.getElementById('chat-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
 });
 
 function createSparkles() {
