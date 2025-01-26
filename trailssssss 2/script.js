@@ -789,6 +789,7 @@ class LoadingScreen {
     }
 }
 // Remove all Three.js related code and use this simpler approach
+// Replace handleLoadingScreen function with this
 function handleLoadingScreen() {
     const loadingScreen = document.getElementById('loading-overlay');
     const loadingProgress = document.querySelector('.loading-progress');
@@ -801,7 +802,10 @@ function handleLoadingScreen() {
     ];
     let progressIndex = 0;
 
-    // Function to update loading text
+    // Show loading screen initially
+    loadingScreen.style.display = 'flex';
+    loadingScreen.style.opacity = '1';
+
     function updateLoadingText() {
         if (progressIndex < loadingTexts.length) {
             loadingProgress.style.opacity = '0';
@@ -816,17 +820,33 @@ function handleLoadingScreen() {
         }
     }
 
-    // Start the loading sequence
+    // Start loading sequence
     updateLoadingText();
 
-    // Hide loading screen after 5 seconds
-    setTimeout(() => {
+    // Create a promise that resolves when models are loaded
+    const modelLoadPromise = new Promise((resolve, reject) => {
+        faceapi.nets.tinyFaceDetector.loadFromUri('/models').then(() => {
+            return Promise.all([
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+                faceapi.nets.faceExpressionNet.loadFromUri('/models')
+            ]);
+        }).then(resolve).catch(reject);
+    });
+
+    // Hide loading screen when models are loaded or after 8 seconds max
+    Promise.race([
+        modelLoadPromise,
+        new Promise(resolve => setTimeout(resolve, 8000))
+    ]).then(() => {
         loadingScreen.style.opacity = '0';
-        loadingScreen.style.transition = 'opacity 1s ease-out';
         setTimeout(() => {
             loadingScreen.style.display = 'none';
         }, 1000);
-    }, 5000);
+    }).catch(error => {
+        handleError(`Failed to load models: ${error.message}`);
+        loadingScreen.style.display = 'none';
+    });
 }
 
 // Add this to your DOMContentLoaded event listener
