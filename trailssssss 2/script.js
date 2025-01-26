@@ -3,36 +3,7 @@ const video = document.getElementById('video');
 const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 const statusMessage = document.getElementById('status-message');
-const emotionIndicator = document.getElementById('emotion-indicator');// Expand button functionality
-let isExpanded = false;
-expandBtn.addEventListener('click', () => {
-    isExpanded = !isExpanded;
-    
-    // Toggle expanded class on camera section
-    cameraSection.classList.toggle('expanded');
-    
-    // Handle layout changes
-    if (isExpanded) {
-        // Bring camera to front
-        cameraSection.style.zIndex = '10000';
-        // Hide left panel content but maintain layout
-        leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'hidden');
-        leftPanel.style.pointerEvents = 'none';
-    } else {
-        cameraSection.style.zIndex = '';
-        leftPanel.querySelectorAll('*').forEach(el => el.style.visibility = 'visible');
-        leftPanel.style.pointerEvents = 'auto';
-    }
-    
-    expandBtn.textContent = isExpanded ? '⤡' : '⤢';
-    
-    // Force video redraw
-    if (video.srcObject) {
-        video.style.display = 'none';
-        void video.offsetHeight;
-        video.style.display = 'block';
-    }
-});
+const emotionIndicator = document.getElementById('emotion-indicator');
 let canvas;
 let lastDetectionTime = 0;
 const emotionDetectionDelay = 2000; // Delay in milliseconds.
@@ -625,7 +596,170 @@ function updateStatus(message, type) {
 
 
 //sodi 
+// Loading Screen Class
+class LoadingScreen {
+    constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true, 
+            alpha: true,
+            canvas: document.createElement('canvas')
+        });
+        this.particles = [];
+        this.loadingProgress = document.querySelector('.loading-progress');
+        this.progressIndex = 0;
+        
+        // Use the same primary color as your app
+        this.particleColor = new THREE.Color(0x6366f1);
+        
+        this.loadingTexts = [
+            "Initializing Neural Core...",
+            "Loading Emotional Matrix...",
+            "Calibrating Voice Systems...",
+            "Establishing Neural Links...",
+            "LEGION-AI Activated"
+        ];
+        
+        this.init();
+        this.animate();
+        this.updateLoadingText();
+    }
 
+    init() {
+        // Setup renderer with your app's aesthetic
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setClearColor(0x000000, 0);
+        document.getElementById('loading-overlay').insertBefore(
+            this.renderer.domElement,
+            document.getElementById('loading-overlay').firstChild
+        );
+        
+        // Position camera
+        this.camera.position.z = 30;
+
+        // Create particles with your app's primary color
+        const particleGeometry = new THREE.IcosahedronGeometry(0.5, 0);
+        const particleMaterial = new THREE.MeshPhongMaterial({
+            color: this.particleColor,
+            emissive: this.particleColor,
+            emissiveIntensity: 0.5,
+            transparent: true,
+            opacity: 0.8,
+            shininess: 100
+        });
+
+        // Create more interesting particle field
+        for (let i = 0; i < 150; i++) {
+            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+            
+            // Create a more dynamic particle field
+            const radius = THREE.MathUtils.randFloat(10, 25);
+            const theta = THREE.MathUtils.randFloatSpread(360);
+            const phi = THREE.MathUtils.randFloatSpread(360);
+
+            particle.position.x = radius * Math.sin(theta) * Math.cos(phi);
+            particle.position.y = radius * Math.sin(theta) * Math.sin(phi);
+            particle.position.z = radius * Math.cos(theta);
+
+            // Add more complex rotation behavior
+            particle.userData = {
+                rotationSpeed: {
+                    x: THREE.MathUtils.randFloatSpread(0.02),
+                    y: THREE.MathUtils.randFloatSpread(0.02),
+                    z: THREE.MathUtils.randFloatSpread(0.02)
+                },
+                oscillation: {
+                    speed: THREE.MathUtils.randFloat(0.01, 0.03),
+                    amplitude: THREE.MathUtils.randFloat(0.1, 0.3),
+                    offset: Math.random() * Math.PI * 2
+                }
+            };
+
+            this.particles.push(particle);
+            this.scene.add(particle);
+        }
+
+        // Enhanced lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        const pointLight1 = new THREE.PointLight(this.particleColor, 1, 100);
+        const pointLight2 = new THREE.PointLight(this.particleColor, 0.5, 100);
+        
+        pointLight1.position.set(0, 0, 20);
+        pointLight2.position.set(0, 20, 0);
+        
+        this.scene.add(ambientLight, pointLight1, pointLight2);
+
+        // Add smooth animations
+        gsap.to('.logo-text', {
+            duration: 2,
+            scale: 1.1,
+            yoyo: true,
+            repeat: -1,
+            ease: "power1.inOut"
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        const time = Date.now() * 0.001;
+
+        this.particles.forEach(particle => {
+            // Complex rotation
+            particle.rotation.x += particle.userData.rotationSpeed.x;
+            particle.rotation.y += particle.userData.rotationSpeed.y;
+            particle.rotation.z += particle.userData.rotationSpeed.z;
+
+            // Add oscillating movement
+            const oscData = particle.userData.oscillation;
+            particle.position.y += Math.sin(time * oscData.speed + oscData.offset) * oscData.amplitude;
+        });
+
+        // Gentle scene rotation
+        this.scene.rotation.y += 0.001;
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    updateLoadingText() {
+        gsap.to(this.loadingProgress, {
+            opacity: 0,
+            duration: 0.5,
+            onComplete: () => {
+                this.loadingProgress.textContent = this.loadingTexts[this.progressIndex];
+                gsap.to(this.loadingProgress, {
+                    opacity: 1,
+                    duration: 0.5
+                });
+                this.progressIndex = (this.progressIndex + 1) % this.loadingTexts.length;
+                if (this.progressIndex < this.loadingTexts.length - 1) {
+                    setTimeout(() => this.updateLoadingText(), 2000);
+                }
+            }
+        });
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    hide() {
+        gsap.to('#loading-overlay', {
+            opacity: 0,
+            duration: 1,
+            ease: "power2.inOut",
+            onComplete: () => {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        });
+    }
+}
+// Remove all Three.js related code and use this simpler approach
 function handleLoadingScreen() {
     const loadingScreen = document.getElementById('loading-overlay');
     const loadingProgress = document.querySelector('.loading-progress');
@@ -638,10 +772,7 @@ function handleLoadingScreen() {
     ];
     let progressIndex = 0;
 
-    // Show loading screen immediately
-    loadingScreen.style.display = 'flex';
-    loadingScreen.style.opacity = '1';
-
+    // Function to update loading text
     function updateLoadingText() {
         if (progressIndex < loadingTexts.length) {
             loadingProgress.style.opacity = '0';
@@ -656,88 +787,45 @@ function handleLoadingScreen() {
         }
     }
 
-    // Start loading sequence
+    // Start the loading sequence
     updateLoadingText();
 
-    // Create model loading promise
-    const modelLoadPromise = new Promise((resolve, reject) => {
-        faceapi.nets.tinyFaceDetector.loadFromUri('/models')
-            .then(() => Promise.all([
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-                faceapi.nets.faceExpressionNet.loadFromUri('/models')
-            ]))
-            .then(resolve)
-            .catch(reject);
-    });
-
-    // Handle loading completion
-    Promise.race([
-        modelLoadPromise,
-        new Promise(resolve => setTimeout(resolve, 8000)) // 8 second timeout
-    ]).then(() => {
+    // Hide loading screen after 5 seconds
+    setTimeout(() => {
         loadingScreen.style.opacity = '0';
+        loadingScreen.style.transition = 'opacity 1s ease-out';
         setTimeout(() => {
             loadingScreen.style.display = 'none';
         }, 1000);
-    }).catch(error => {
-        console.error('Model loading error:', error);
-        loadingScreen.style.display = 'none';
-        handleError('Failed to load AI models. Please refresh the page.');
-    });
+    }, 5000);
 }
 
 // Add this to your DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', () => {
     handleLoadingScreen();
+    loadModels();
+    initializeSpeechRecognition();
+    initializeSpeechSynthesis();
     
-    // Get DOM elements once
+    // Rest of your initialization code...
     const expandBtn = document.querySelector('.expand-btn');
     const cameraSection = document.querySelector('.camera-section');
     const leftPanel = document.querySelector('.left-panel');
-    const micBtn = document.getElementById('mic-btn');
-    const sendBtn = document.getElementById('send-btn');
-    const chatInput = document.getElementById('chat-input');
-
-    // Expand button handler
-    let isExpanded = false;
+    
     expandBtn.addEventListener('click', () => {
-        isExpanded = !isExpanded;
         cameraSection.classList.toggle('expanded');
-        
-        if (isExpanded) {
-            cameraSection.style.zIndex = '10000';
-            leftPanel.style.opacity = '0';
-            leftPanel.style.pointerEvents = 'none';
-        } else {
-            cameraSection.style.zIndex = '';
-            leftPanel.style.opacity = '1';
-            leftPanel.style.pointerEvents = 'auto';
-        }
-        
-        expandBtn.textContent = isExpanded ? '⤡' : '⤢';
-        
-        // Force video redraw
-        if (video.srcObject) {
-            video.style.display = 'none';
-            void video.offsetHeight;
-            video.style.display = 'block';
-        }
+        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
+        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
     });
 
-    // Chat controls
-    micBtn.addEventListener('click', toggleMicrophone);
-    sendBtn.addEventListener('click', () => sendMessage());
-    chatInput.addEventListener('keypress', (e) => {
+    document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
+    document.getElementById('send-btn').addEventListener('click', () => sendMessage());
+    document.getElementById('chat-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
     });
-
-    // Initialize other components
-    initializeSpeechRecognition();
-    initializeSpeechSynthesis();
 });
 
 // Initialize loading screen
@@ -756,6 +844,31 @@ document.getElementById('ocr-menu-item').addEventListener('click', () => {
     if (userConfirmed) {
         window.open('https://llamaocr.com/', '_blank');
     }
+});
+
+// Initialize everything when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadModels();
+    initializeSpeechRecognition();
+    initializeSpeechSynthesis(); 
+    // Add camera expand/minimize functionality
+    const expandBtn = document.querySelector('.expand-btn');
+    const cameraSection = document.querySelector('.camera-section');
+    const leftPanel = document.querySelector('.left-panel');
+    expandBtn.addEventListener('click', () => {
+        cameraSection.classList.toggle('expanded');
+        leftPanel.style.visibility = cameraSection.classList.contains('expanded') ? 'hidden' : 'visible';
+        expandBtn.textContent = cameraSection.classList.contains('expanded') ? '⤡' : '⤢';
+    });
+    // Add event listeners for chat controls
+    document.getElementById('mic-btn').addEventListener('click', toggleMicrophone);
+    document.getElementById('send-btn').addEventListener('click', () => sendMessage());
+    document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 });
 
 function createSparkles() {
