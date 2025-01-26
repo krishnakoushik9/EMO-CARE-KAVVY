@@ -117,10 +117,6 @@
             gap: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
-            flex-shrink: 0; /* Prevent panel from shrinking */
-            position: relative; /* Create stacking context */
-            /* Add this */
-            min-width: 400px;
         }
 
         .features-menu {
@@ -190,19 +186,11 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90vw;
-            height: 90vh;
-            max-width: 1200px;
-            max-height: 900px;
-            z-index: 1000;
-            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5); /* Add overlay */
-        }
-        
-        /* Add this to prevent hover effects when expanded */
-        .camera-section.expanded:hover {
             transform: translate(-50%, -50%) !important;
-            box-shadow: var(--glass-shadow);
+            width: 80vw;
+            height: 80vh;
+            z-index: 1000;
+            backdrop-filter: blur(40px);
         }
 
         .video-container {
@@ -211,8 +199,6 @@
             position: relative;
             border-radius: 24px;
             overflow: hidden;
-            /* Add this */
-            background: black;
         }
 
         #video {
@@ -489,7 +475,6 @@
                 flex-direction: column;
                 padding: 10px;
                 height: auto;
-                position: relative; /* For proper z-index context */
             }
 
             .left-panel, .right-panel {
