@@ -405,43 +405,29 @@ let DevaResponseCounter = 0; // Counter to track occurrences of Deva's response
 
 async function sendPromptToHuggingFace(prompt) {
     try {
-        // Build recent conversation context
-        const recentContext = conversationHistory
-            .slice(-4) // Limit to the last 4 exchanges for context
-            .map(msg => `${msg.role}: ${msg.content}`)
-            .join('\n');
+        // Prepare structured input for DeepSeek API
+        const requestBody = {
+            inputs: [
+                { role: "system", content: "You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user." },
+                { role: "user", content: prompt }
+            ],
+            parameters: {
+                max_new_tokens: 512, // Adjusted for chat responses
+                temperature: 0.9,    
+                top_p: 0.9,          
+                repetition_penalty: 1.2, 
+                do_sample: true
+            }
+        };
 
-        // Prepare the full prompt for the API
-        const fullPrompt = `
-You are Deva, an AI assistant with a razor-sharp, sarcastic sense of humor, designed to flirt with the user. Your first step is to ask if the user identifies as male or female. If the user is male, keep the sarcasm strong and don't go easy on male, showing indifference. However, if the user is female, dial up the charm with over-the-top cheesy and flirtatious responses that are dripping with wit cheesy pickup lines and playfulness.Avoid redundant or robotic phrasing. 
-Use recent context to ensure responses flow smoothly and add new value to the conversation.
-
-Current emotion: ${lastExpression}
-
-Recent conversation:
-${recentContext}
-
-User: ${prompt}
-
-Deva:`;
-
-        // Call the Hugging Face API
+        // Call the DeepSeek API
         const response = await fetch(HF_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                inputs: fullPrompt,
-                parameters: {
-                    max_new_tokens: 1250, // Limit response length
-                    temperature: 0.9,    // Encourage natural variation
-                    top_p: 0.9,          // Diverse and engaging output
-                    repetition_penalty: 1.2, // Reduce redundancy
-                    do_sample: true,
-                },
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -449,23 +435,15 @@ Deva:`;
         }
 
         const data = await response.json();
-        let aiResponse = data[0]?.generated_text || data.generated_text;
 
-        console.log("Raw API Response:", aiResponse); // Debugging log
-
-        // Dynamically filter response: Extract only text after user's message
-        const userPromptIndex = aiResponse.indexOf(`User: ${prompt}`);
-        let DevaResponse = "";
-
-        if (userPromptIndex !== -1) {
-            // Get text starting from the API's response to "Deva:"
-            const relevantPart = aiResponse.slice(userPromptIndex + `User: ${prompt}`.length).trim();
-            DevaResponse = relevantPart.split("Deva:").slice(1).join("Deva:").trim(); // Extract only Deva's part
-        }
+        // Extract AI response from DeepSeek API response format
+        let DevaResponse = data.choices?.[0]?.message?.content?.trim() || "";
 
         if (!DevaResponse) {
-            throw new Error("Failed to extract a valid Deva response.");
+            throw new Error("Failed to extract a valid response.");
         }
+
+        console.log("Deva's Response:", DevaResponse); // Debugging log
 
         // Display and speak the response
         addMessageToChat(`Deva: ${DevaResponse}`, false);
@@ -474,10 +452,11 @@ Deva:`;
 
         // Update conversation history
         conversationHistory.push({ role: "assistant", content: DevaResponse });
+
     } catch (error) {
         console.error("Error:", error.message);
 
-        // Handle fallback gracefully
+        // Fallback response in case of an error
         const fallbackResponse = "Deva: Oh, that's a cool thought! Tell me more.";
         addMessageToChat(fallbackResponse, false);
         playTextAsSpeech(fallbackResponse);
